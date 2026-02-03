@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 
@@ -24,26 +24,30 @@ const QuestionsManage = ({ isEmbedded = false }) => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
     const router = useRouter();
 
-    useEffect(() => {
-        if (!token && !isEmbedded) {
-            router.push('/admin/login');
-            return;
-        }
-        fetchQuestions();
-    }, [token, isEmbedded, router]);
-
-    const fetchQuestions = async () => {
+    const fetchQuestions = useCallback(async () => {
         setIsLoading(true);
         try {
             const res = await axios.get(`${apiUrl}/api/admin/quiz`);
             setQuestions(res.data);
             setError('');
         } catch (err) {
-            setError('Failed to load questions from server.');
+            console.error('Error fetching questions:', err);
+            setError('Ntitubashije kubona ibibazo.');
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [apiUrl]);
+
+    useEffect(() => {
+        if (!token && !isEmbedded) {
+            router.push('/admin/login');
+            return;
+        }
+        const init = async () => {
+            await fetchQuestions();
+        };
+        init();
+    }, [token, isEmbedded, router, fetchQuestions]);
 
     const handleLogout = () => {
         localStorage.removeItem('adminToken');
@@ -61,6 +65,12 @@ const QuestionsManage = ({ isEmbedded = false }) => {
         setFormData(prev => ({ ...prev, options: newOptions }));
     };
 
+    const handleImageChange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+            setFormData(prev => ({ ...prev, image: e.target.files[0] }));
+        }
+    };
+
     const resetForm = () => {
         setFormData({
             questionText: '',
@@ -70,18 +80,7 @@ const QuestionsManage = ({ isEmbedded = false }) => {
             image: null
         });
         setEditingId(null);
-    };
-
-    const startEdit = (q) => {
-        setEditingId(q.id);
-        setFormData({
-            questionText: q.questionText,
-            options: q.options || ['', '', '', ''],
-            correctAnswerIndex: q.correctAnswerIndex || 0,
-            difficulty: q.difficulty || 'Medium',
-            image: null
-        });
-        setView('edit');
+        setError('');
     };
 
     const handleSubmit = async (e) => {
@@ -91,77 +90,91 @@ const QuestionsManage = ({ isEmbedded = false }) => {
 
         const data = new FormData();
         data.append('questionText', formData.questionText);
-        formData.options.forEach(opt => data.append('options', opt));
+        data.append('options', JSON.stringify(formData.options));
         data.append('correctAnswerIndex', formData.correctAnswerIndex);
         data.append('difficulty', formData.difficulty);
-        if (formData.image) data.append('questionImage', formData.image);
+        if (formData.image) {
+            data.append('image', formData.image);
+        }
 
         try {
-            const config = {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data'
-                }
-            };
+            const url = editingId ? `${apiUrl}/api/admin/quiz/${editingId}` : `${apiUrl}/api/admin/quiz`;
+            const method = editingId ? 'put' : 'post';
 
-            if (view === 'edit') {
-                await axios.put(`${apiUrl}/api/admin/quiz/${editingId}`, data, config);
-            } else {
-                await axios.post(`${apiUrl}/api/admin/quiz`, data, config);
-            }
+            await axios({
+                method,
+                url,
+                data,
+                headers: { 'Content-Type': 'multipart/form-data', 'Authorization': `Bearer ${token}` }
+            });
 
             resetForm();
             setView('list');
             fetchQuestions();
         } catch (err) {
-            setError(err.response?.data?.message || 'Database Synchronization Failed.');
+            console.error('Error saving question:', err);
+            setError('Ntitubashije kubika ikibazo. Ongera ugerageze.');
         } finally {
             setIsSaving(false);
         }
     };
 
+    const handleEdit = (q) => {
+        setFormData({
+            questionText: q.questionText,
+            options: q.options || ['', '', '', ''],
+            correctAnswerIndex: q.correctAnswerIndex,
+            difficulty: q.difficulty,
+            image: null
+        });
+        setEditingId(q.id);
+        setView('edit');
+    };
+
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure? This action is permanent.')) return;
+        if (!window.confirm('Ese wizeye ko ushaka gusiba iki kibazo?')) return;
         try {
             await axios.delete(`${apiUrl}/api/admin/quiz/${id}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             fetchQuestions();
         } catch (err) {
-            setError('Delete action failed.');
+            console.error('Error deleting question:', err);
+            setError('Ntitubashije gusiba ikibazo.');
         }
     };
 
-    // Shared Styles (Light Theme adapted)
-    const containerClass = isEmbedded ? "w-full bg-transparent text-slate-600 font-sans" : "min-h-screen bg-[#F8F9FC] text-slate-600 font-sans";
+    if (isLoading && view === 'list') {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            </div>
+        );
+    }
 
     return (
-        <div className={containerClass}>
-            {/* Removed Helmet */}
-
-            {!isEmbedded && (
-                <nav className="bg-white border-b border-slate-100 px-6 py-4 flex justify-between items-center sticky top-0 z-50 shadow-sm">
-                    <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-200">U</div>
-                        <h1 className="text-xl font-black tracking-tight text-slate-900 uppercase">Gucunga Ibibazo</h1>
+        <div className="max-w-6xl mx-auto p-4 md:p-8">
+            <div className="bg-white rounded-[32px] shadow-2xl overflow-hidden border border-slate-100">
+                {/* Header */}
+                <div className="bg-slate-900 p-8 text-white flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div>
+                        <h1 className="text-3xl font-black">Gucunga Ibibazo</h1>
+                        <p className="text-slate-400 font-bold uppercase text-xs tracking-widest mt-1">Imyitozo y&apos;Amategeko y&apos;Umuhanda</p>
                     </div>
-                    <div className="flex items-center space-x-4">
-                        <button onClick={() => router.push('/')} className="text-sm font-bold text-slate-400 hover:text-indigo-600 transition-colors">Home</button>
-                        <button onClick={handleLogout} className="px-4 py-2 bg-slate-100 text-slate-500 rounded-lg text-xs font-bold uppercase hover:bg-red-50 hover:text-red-600 transition-all">Logout</button>
-                    </div>
-                </nav>
-            )}
+                    {!isEmbedded && (
+                        <button onClick={handleLogout} className="px-6 py-2 bg-white/10 hover:bg-white/20 rounded-xl font-bold transition-all text-sm">Gusohoka</button>
+                    )}
+                </div>
 
-            <div className={isEmbedded ? "" : "max-w-7xl mx-auto p-6 lg:p-10"}>
-                {error && (
-                    <div className="mb-8 bg-red-50 border-l-4 border-red-500 p-4 rounded-xl text-red-600 font-bold animate-pulse shadow-sm">
-                        ⚠️ Error: {error}
-                    </div>
-                )}
+                <div className="p-8">
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 font-bold rounded-r-xl">
+                            {error}
+                        </div>
+                    )}
 
-                {view === 'list' ? (
-                    <section className="animate-fadeIn">
-                        {!isEmbedded && (
+                    {view === 'list' ? (
+                        <>
                             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
                                 <div>
                                     <h2 className="text-3xl font-black text-slate-900">Ubugenzuzi bw&apos;Ibibazo</h2>
@@ -174,180 +187,152 @@ const QuestionsManage = ({ isEmbedded = false }) => {
                                     + Akandi Kibazo
                                 </button>
                             </div>
-                        )}
 
-                        {isEmbedded && (
-                            <div className="flex justify-between items-center mb-8">
-                                <h2 className="text-xl font-black text-slate-800 uppercase tracking-widest">Ububiko bw&apos;Ibibazo</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {questions.map((q) => (
+                                    <div key={q.id} className="group bg-slate-50 rounded-3xl p-6 border border-slate-100 hover:bg-white hover:shadow-2xl transition-all duration-300 flex flex-col h-full">
+                                        <div className="mb-4">
+                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${q.difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
+                                                    q.difficulty === 'Hard' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
+                                                }`}>
+                                                {q.difficulty}
+                                            </span>
+                                        </div>
+
+                                        <h3 className="text-slate-800 font-bold text-lg mb-6 line-clamp-3 leading-snug">
+                                            {q.questionText}
+                                        </h3>
+
+                                        {q.imageUrl && (
+                                            <div className="mb-6 rounded-2xl overflow-hidden aspect-video">
+                                                <img src={`${apiUrl}${q.imageUrl}`} alt="Question" className="w-full h-full object-cover" />
+                                            </div>
+                                        )}
+
+                                        <div className="mt-auto pt-6 border-t border-slate-200 flex justify-between gap-3">
+                                            <button
+                                                onClick={() => handleEdit(q)}
+                                                className="flex-1 py-3 bg-white text-indigo-600 border-2 border-indigo-100 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all"
+                                            >
+                                                Guhindura
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(q.id)}
+                                                className="px-4 py-3 bg-white text-red-500 border-2 border-red-50 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white hover:border-red-500 transition-all"
+                                            >
+                                                🗑️
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
+                    ) : (
+                        <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
+                            <div className="flex items-center justify-between mb-10">
+                                <h2 className="text-3xl font-black text-slate-900">
+                                    {editingId ? 'Hindura Ikibazo' : 'Ongeramo Ikibazo'}
+                                </h2>
                                 <button
-                                    onClick={() => { resetForm(); setView('create'); }}
-                                    className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold text-xs uppercase tracking-widest shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all"
+                                    type="button"
+                                    onClick={() => setView('list')}
+                                    className="text-slate-400 font-bold hover:text-slate-600 transition-colors"
                                 >
-                                    + Ongeraho
+                                    Funga
                                 </button>
                             </div>
-                        )}
 
-                        {isLoading ? (
-                            <div className="flex justify-center py-20">
-                                <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 gap-4">
-                                {questions.map(q => (
-                                    <div key={q.id} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between group hover:shadow-lg transition-all hover:border-indigo-100">
-                                        <div className="flex-1 min-w-0 pr-4">
-                                            <div className="flex items-center space-x-3 mb-2">
-                                                <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter ${q.difficulty === 'Hard' ? 'bg-red-100 text-red-600' : q.difficulty === 'Medium' ? 'bg-indigo-100 text-indigo-600' : 'bg-green-100 text-green-600'}`}>
-                                                    {q.difficulty}
-                                                </span>
-                                                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">ID: {q.id}</span>
-                                            </div>
-                                            <h3 className="text-lg font-bold text-slate-800 leading-snug truncate">{q.questionText}</h3>
-                                            <div className="flex mt-3 space-x-2">
-                                                {q.options.map((opt, i) => (
-                                                    <span key={i} className={`text-[10px] px-2 py-1 rounded font-bold border ${i === q.correctAnswerIndex ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-50 text-slate-500 border-slate-100'}`}>
-                                                        {String.fromCharCode(65 + i)}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
+                            <div className="space-y-8">
+                                <section className="space-y-3">
+                                    <label className="block text-sm font-black text-slate-400 uppercase tracking-widest">Imyandiko y&apos;ikibazo</label>
+                                    <textarea
+                                        name="questionText"
+                                        value={formData.questionText}
+                                        onChange={handleInputChange}
+                                        className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 focus:border-indigo-500 outline-none transition-all min-h-[120px]"
+                                        placeholder="Andika ikibazo hano..."
+                                        required
+                                    />
+                                </section>
 
-                                        <div className="flex items-center space-x-4 mt-6 md:mt-0 flex-shrink-0">
-                                            {q.questionImage && (
-                                                <div className="w-16 h-16 rounded-xl border border-slate-100 overflow-hidden bg-slate-50 flex-shrink-0 shadow-sm">
-                                                    <img src={`${apiUrl}${q.questionImage}`} className="w-full h-full object-cover" alt="Visual" />
-                                                </div>
-                                            )}
-                                            <div className="flex flex-col space-y-2">
-                                                <button onClick={() => startEdit(q)} className="px-4 py-2 bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 rounded-lg text-xs font-black transition-colors uppercase tracking-widest border border-slate-100 hover:border-indigo-100">Hindura</button>
-                                                <button onClick={() => handleDelete(q.id)} className="px-4 py-2 bg-white text-slate-400 hover:text-red-500 rounded-lg text-xs font-black transition-colors uppercase tracking-widest border border-slate-100 hover:border-red-100">Siba</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                        {questions.length === 0 && !isLoading && <div className="text-center py-20 text-slate-400 font-bold uppercase tracking-[0.3em] bg-slate-50 rounded-3xl border border-dashed border-slate-200">Pool is empty</div>}
-                    </section>
-                ) : (
-                    <section className="max-w-3xl mx-auto animate-zoomIn">
-                        <div className="flex items-center justify-between mb-8">
-                            <h2 className="text-2xl font-black text-slate-900 italic tracking-tighter">
-                                {view === 'edit' ? 'Vugurura Ibirimo' : 'Ikibazo Gishya'}
-                            </h2>
-                            <button onClick={() => setView('list')} className="w-10 h-10 rounded-full flex items-center justify-center bg-white text-slate-400 hover:text-slate-900 shadow-sm transition-all text-xl font-bold">✕</button>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 lg:p-12 rounded-[40px] border border-slate-100 shadow-xl relative overflow-hidden">
-                            <div>
-                                <label className="block text-[10px] font-black text-indigo-600 mb-2 uppercase tracking-[0.2em] ml-1">Question Body</label>
-                                <textarea
-                                    required
-                                    name="questionText"
-                                    value={formData.questionText}
-                                    onChange={handleInputChange}
-                                    className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 focus:bg-white outline-none transition-all text-slate-800 resize-none h-32 font-bold placeholder:text-slate-300"
-                                    placeholder="Enter the main question content..."
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {formData.options.map((opt, i) => (
-                                    <div key={i}>
-                                        <label className="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-[0.2em] ml-1">Choice {String.fromCharCode(65 + i)}</label>
-                                        <input
-                                            required
-                                            type="text"
-                                            value={opt}
-                                            onChange={(e) => handleOptionChange(i, e.target.value)}
-                                            className="w-full px-6 py-4 rounded-xl bg-slate-50 border border-slate-100 focus:border-indigo-500 focus:bg-white outline-none transition-all text-slate-800 font-bold placeholder:text-slate-300"
-                                            placeholder={`Option ${String.fromCharCode(65 + i)}`}
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-[0.2em] ml-1">Correct Answer</label>
-                                    <div className="relative">
-                                        <select
-                                            name="correctAnswerIndex"
-                                            value={formData.correctAnswerIndex}
-                                            onChange={handleInputChange}
-                                            className="w-full px-6 py-4 rounded-xl bg-slate-50 border border-slate-100 focus:border-indigo-500 focus:bg-white outline-none transition-all text-slate-800 font-bold appearance-none cursor-pointer"
-                                        >
-                                            {formData.options.map((_, i) => (
-                                                <option key={i} value={i}>Option {String.fromCharCode(65 + i)}</option>
-                                            ))}
-                                        </select>
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">▼</div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-[0.2em] ml-1">Difficulty</label>
-                                    <div className="relative">
+                                <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-3">
+                                        <label className="block text-sm font-black text-slate-400 uppercase tracking-widest">Urwego (Difficulty)</label>
                                         <select
                                             name="difficulty"
                                             value={formData.difficulty}
                                             onChange={handleInputChange}
-                                            className="w-full px-6 py-4 rounded-xl bg-slate-50 border border-slate-100 focus:border-indigo-500 focus:bg-white outline-none transition-all text-slate-800 font-bold appearance-none cursor-pointer"
+                                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 focus:border-indigo-500 outline-none transition-all appearance-none cursor-pointer"
                                         >
                                             <option value="Easy">Easy</option>
                                             <option value="Medium">Medium</option>
                                             <option value="Hard">Hard</option>
                                         </select>
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">▼</div>
                                     </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-[10px] font-black text-indigo-600 mb-4 uppercase tracking-[0.2em] ml-1">Visualization Asset</label>
-                                <div className="flex items-start space-x-6">
-                                    {(editingId && !formData.image) && questions.find(q => q.id === editingId)?.questionImage && (
-                                        <div className="w-24 h-24 rounded-xl border border-slate-200 overflow-hidden bg-white p-1 shadow-inner relative group">
-                                            <img src={`${apiUrl}${questions.find(q => q.id === editingId).questionImage}`} className="w-full h-full object-cover rounded-lg" alt="Sync" />
-                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[8px] font-black text-white p-2 text-center uppercase tracking-tighter">Replace below</div>
-                                        </div>
-                                    )}
-                                    <div className="flex-1 relative group h-24 rounded-2xl border-2 border-dashed border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition-all flex flex-col items-center justify-center cursor-pointer overflow-hidden bg-slate-50">
-                                        <input type="file" onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.files[0] }))} className="absolute inset-0 opacity-0 cursor-pointer z-10" accept="image/*" />
-                                        <span className={`text-[10px] font-black uppercase tracking-widest ${formData.image ? 'text-green-600' : 'text-slate-400 group-hover:text-indigo-500'}`}>
-                                            {formData.image ? `Selected: ${formData.image.name}` : 'Click to Upload Image'}
-                                        </span>
+                                    <div className="space-y-3">
+                                        <label className="block text-sm font-black text-slate-400 uppercase tracking-widest">Ifoto (Optional)</label>
+                                        <input
+                                            type="file"
+                                            onChange={handleImageChange}
+                                            className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                            accept="image/*"
+                                        />
                                     </div>
-                                </div>
-                            </div>
+                                </section>
 
-                            <div className="pt-6">
-                                <button
-                                    disabled={isSaving}
-                                    type="submit"
-                                    className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-lg transition-all shadow-xl shadow-indigo-100 active:scale-95 disabled:opacity-50 uppercase tracking-widest"
-                                >
-                                    {isSaving ? 'Saving...' : (view === 'edit' ? 'Update Question' : 'Add to Database')}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setView('list')}
-                                    className="w-full mt-4 py-3 bg-transparent text-slate-400 hover:text-slate-600 font-bold uppercase tracking-widest transition-colors text-xs"
-                                >
-                                    Cancel
-                                </button>
+                                <section className="space-y-6">
+                                    <label className="block text-sm font-black text-slate-400 uppercase tracking-widest">Ibisubizo bishoboka</label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {formData.options.map((option, index) => (
+                                            <div key={index} className={`relative group transition-all`}>
+                                                <div className={`absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center font-black text-xs border-2 transition-all ${formData.correctAnswerIndex === index ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-200 text-slate-400'
+                                                    }`}>
+                                                    {String.fromCharCode(65 + index)}
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    value={option}
+                                                    onChange={(e) => handleOptionChange(index, e.target.value)}
+                                                    className={`w-full pl-16 pr-12 py-4 bg-slate-50 border-2 rounded-2xl font-bold text-slate-700 outline-none transition-all ${formData.correctAnswerIndex === index ? 'border-indigo-500 bg-white shadow-lg' : 'border-slate-100 focus:border-slate-300'
+                                                        }`}
+                                                    placeholder={`Igisubizo ${String.fromCharCode(65 + index)}`}
+                                                    required={index < 2}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData(prev => ({ ...prev, correctAnswerIndex: index }))}
+                                                    className={`absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full border-2 transition-all ${formData.correctAnswerIndex === index ? 'bg-indigo-500 border-indigo-500' : 'border-slate-200'
+                                                        }`}
+                                                >
+                                                    {formData.correctAnswerIndex === index && <span className="text-white text-[10px]">✓</span>}
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <p className="text-xs text-slate-400 font-bold italic">Kanda kuri kariya gakomane k&apos;iburyo kugira ngo ugaragaze igisubizo cy&apos;ukuri.</p>
+                                </section>
+
+                                <div className="pt-10 flex flex-col md:flex-row gap-4">
+                                    <button
+                                        type="submit"
+                                        disabled={isSaving}
+                                        className="flex-[2] py-5 bg-indigo-600 text-white rounded-[25px] font-black text-lg uppercase tracking-widest shadow-2xl shadow-indigo-200 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                                    >
+                                        {isSaving ? 'Bikaba bikwa...' : editingId ? 'Bika impinduka' : 'Launch Question'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setView('list')}
+                                        className="flex-1 py-5 bg-slate-100 text-slate-500 rounded-[25px] font-black text-lg uppercase tracking-widest hover:bg-slate-200 transition-all"
+                                    >
+                                        Reka
+                                    </button>
+                                </div>
                             </div>
                         </form>
-                    </section>
-                )}
+                    )}
+                </div>
             </div>
-
-            <style>{`
-                @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-                @keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-                .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
-                .animate-zoomIn { animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-            `}</style>
         </div>
     );
 };

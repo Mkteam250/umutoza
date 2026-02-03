@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 
 const CampaignManager = () => {
@@ -35,7 +35,7 @@ const CampaignManager = () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://umutoza-umutoza.hf.space';
     const fileInputRef = useRef(null);
 
-    const fetchCampaigns = async () => {
+    const fetchCampaigns = useCallback(async () => {
         try {
             const token = localStorage.getItem('adminToken');
             const res = await axios.get(`${apiUrl}/api/promotions`, {
@@ -47,11 +47,14 @@ const CampaignManager = () => {
             console.error('Error fetching campaigns:', error);
             setIsLoading(false);
         }
-    };
+    }, [apiUrl]);
 
     useEffect(() => {
-        fetchCampaigns();
-    }, []);
+        const init = async () => {
+            await fetchCampaigns();
+        };
+        init();
+    }, [fetchCampaigns]);
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -184,128 +187,6 @@ const CampaignManager = () => {
         }
     };
 
-    // --- Preview Component ---
-    const PreviewOverlay = ({ campaign, onClose }) => {
-        if (!campaign) return null;
-
-        const positionStyles = {
-            'center': 'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2',
-            'top-left': 'top-4 left-4',
-            'top-right': 'top-4 right-4',
-            'bottom-left': 'bottom-4 left-4',
-            'bottom-right': 'bottom-4 right-4',
-            'bottom': 'bottom-0 left-0 w-full'
-        };
-
-        const isBottom = campaign.type === 'bottom';
-        // Mocking container context not needed as much for overlay, but helpful for user to visualize
-
-        return (
-            <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-                <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-2xl font-bold text-slate-800">
-                            Preview: <span className="text-indigo-600">{campaign.name}</span>
-                        </h3>
-                        <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                            <span className="text-2xl">×</span>
-                        </button>
-                    </div>
-
-                    <div className="relative w-full h-[600px] border-4 border-slate-900 rounded-2xl overflow-hidden bg-slate-50 shadow-inner">
-                        {/* Mock Site Content */}
-                        <div className="absolute inset-0 p-8 opacity-20 pointer-events-none">
-                            <div className="h-8 bg-slate-300 w-1/3 mb-8 rounded"></div>
-                            <div className="h-4 bg-slate-300 w-full mb-4 rounded"></div>
-                            <div className="h-4 bg-slate-300 w-full mb-4 rounded"></div>
-                            <div className="h-4 bg-slate-300 w-2/3 mb-12 rounded"></div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="h-40 bg-slate-200 rounded"></div>
-                                <div className="h-40 bg-slate-200 rounded"></div>
-                            </div>
-                        </div>
-
-                        {/* The Actual Ad */}
-                        <div className={`absolute ${campaign.type === 'bottom' ? 'bottom-0 left-0 w-full' : (campaign.position === 'center' ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' : '')} ${campaign.position === 'top-left' ? 'top-4 left-4' : ''} ${campaign.position === 'top-right' ? 'top-4 right-4' : ''} ${campaign.position === 'bottom-left' ? 'bottom-4 left-4' : ''} ${campaign.position === 'bottom-right' ? 'bottom-4 right-4' : ''} transition-all duration-500`}>
-
-                            {campaign.type === 'popup' && (
-                                <div className="bg-white p-4 rounded-xl shadow-2xl max-w-xs relative animate-bounce-in">
-                                    {(campaign.canClose !== false) && (
-                                        <button className="absolute -top-2 -right-2 bg-black text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">✕</button>
-                                    )}
-                                    {campaign.mediaType === 'video' ? (
-                                        <video src={mediaPreview} autoPlay loop muted className="w-full rounded-lg mb-2" />
-                                    ) : (
-                                        <img src={mediaPreview} alt="Ad" className="w-full rounded-lg mb-2 object-cover" />
-                                    )}
-                                    {campaign.showButton !== false && (
-                                        <a href="#" className="block w-full bg-indigo-600 text-white text-center py-2 rounded-lg font-bold text-sm mt-2">{campaign.ctaText || 'Learn More'}</a>
-                                    )}
-                                </div>
-                            )}
-
-                            {campaign.type === 'bottom' && (
-                                <div className="absolute bottom-0 left-0 w-full z-[100] bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 border-t-2 border-indigo-500 shadow-[0_-10px_40px_rgba(79,70,229,0.3)]">
-                                    <div className={`flex items-center justify-between ${campaign.fullMedia ? 'h-24' : 'h-20 px-4'} relative overflow-hidden`}>
-                                        {campaign.fullMedia ? (
-                                            <div className="absolute inset-0 w-full h-full">
-                                                {campaign.mediaType === 'video' ? (
-                                                    <video src={mediaPreview} autoPlay loop muted className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <img src={mediaPreview} alt="Ad" className="w-full h-full object-cover" />
-                                                )}
-                                                {/* Overlay to ensure close button is visible if enabled */}
-                                                {campaign.canClose !== false && (
-                                                    <button className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-black/50 rounded-full text-white text-sm z-30">✕</button>
-                                                )}
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <div className="absolute inset-0 bg-white/5 opacity-20 bg-[length:4px_4px]"></div>
-                                                <div className="absolute top-0 left-1/4 w-32 h-full bg-white/5 skew-x-[-20deg] blur-xl"></div>
-
-                                                {/* Left */}
-                                                <div className="flex items-center h-full flex-1">
-                                                    <div className="relative h-16 aspect-[16/9] mr-4 overflow-hidden -skew-x-12 border-r-2 border-indigo-500/50">
-                                                        {campaign.mediaType === 'video' ? (
-                                                            <video src={mediaPreview} autoPlay loop muted className="w-full h-full object-cover skew-x-12 scale-110" />
-                                                        ) : (
-                                                            <img src={mediaPreview} alt="Ad" className="w-full h-full object-cover skew-x-12 scale-110" />
-                                                        )}
-                                                    </div>
-                                                    <div className="z-10">
-                                                        <h3 className="font-black text-white text-lg italic tracking-wider uppercase drop-shadow">
-                                                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500">{campaign.name || 'Campaign'}</span>
-                                                        </h3>
-                                                        <p className="text-[10px] text-indigo-200 font-bold tracking-wide uppercase">Limited Time Offer</p>
-                                                    </div>
-                                                </div>
-
-                                                {/* Right */}
-                                                <div className="flex items-center space-x-4">
-                                                    {campaign.showButton !== false && (
-                                                        <button className="px-6 py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-slate-900 font-black text-sm uppercase italic tracking-widest -skew-x-12 border-2 border-yellow-200 shadow-lg glow">
-                                                            <span className="skew-x-12">{campaign.ctaText || 'Play Now'}</span>
-                                                        </button>
-                                                    )}
-                                                    {campaign.canClose !== false && (
-                                                        <button className="w-6 h-6 flex items-center justify-center bg-white/10 rounded-full text-white/50 text-xs">✕</button>
-                                                    )}
-                                                </div>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                    <p className="text-center text-slate-400 text-xs mt-4">
-                        * This is a simulated preview. Actual rendering may vary slightly based on screen size.
-                    </p>
-                </div>
-            </div>
-        );
-    };
 
 
     return (
@@ -600,8 +481,123 @@ const CampaignManager = () => {
 
             {/* Preview Overlay */}
             {previewCampaign && (
-                <PreviewOverlay campaign={formData.name ? formData : previewCampaign} onClose={() => setPreviewCampaign(null)} />
+                <PreviewOverlay
+                    campaign={formData.name ? formData : previewCampaign}
+                    onClose={() => setPreviewCampaign(null)}
+                    mediaPreview={mediaPreview}
+                />
             )}
+        </div>
+    );
+};
+
+// --- Preview Component ---
+const PreviewOverlay = ({ campaign, onClose, mediaPreview }) => {
+    if (!campaign) return null;
+
+    return (
+        <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-2xl font-bold text-slate-800">
+                        Preview: <span className="text-indigo-600">{campaign.name}</span>
+                    </h3>
+                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                        <span className="text-2xl">×</span>
+                    </button>
+                </div>
+
+                <div className="relative w-full h-[600px] border-4 border-slate-900 rounded-2xl overflow-hidden bg-slate-50 shadow-inner">
+                    {/* Mock Site Content */}
+                    <div className="absolute inset-0 p-8 opacity-20 pointer-events-none">
+                        <div className="h-8 bg-slate-300 w-1/3 mb-8 rounded"></div>
+                        <div className="h-4 bg-slate-300 w-full mb-4 rounded"></div>
+                        <div className="h-4 bg-slate-300 w-full mb-4 rounded"></div>
+                        <div className="h-4 bg-slate-300 w-2/3 mb-12 rounded"></div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="h-40 bg-slate-200 rounded"></div>
+                            <div className="h-40 bg-slate-200 rounded"></div>
+                        </div>
+                    </div>
+
+                    {/* The Actual Ad */}
+                    <div className={`absolute ${campaign.type === 'bottom' ? 'bottom-0 left-0 w-full' : (campaign.position === 'center' ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' : '')} ${campaign.position === 'top-left' ? 'top-4 left-4' : ''} ${campaign.position === 'top-right' ? 'top-4 right-4' : ''} ${campaign.position === 'bottom-left' ? 'bottom-4 left-4' : ''} ${campaign.position === 'bottom-right' ? 'bottom-4 right-4' : ''} transition-all duration-500`}>
+
+                        {campaign.type === 'popup' && (
+                            <div className="bg-white p-4 rounded-xl shadow-2xl max-w-xs relative animate-bounce-in">
+                                {(campaign.canClose !== false) && (
+                                    <button className="absolute -top-2 -right-2 bg-black text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">✕</button>
+                                )}
+                                {campaign.mediaType === 'video' ? (
+                                    <video src={mediaPreview} autoPlay loop muted className="w-full rounded-lg mb-2" />
+                                ) : (
+                                    <img src={mediaPreview} alt="Ad" className="w-full rounded-lg mb-2 object-cover" />
+                                )}
+                                {campaign.showButton !== false && (
+                                    <a href="#" className="block w-full bg-indigo-600 text-white text-center py-2 rounded-lg font-bold text-sm mt-2">{campaign.ctaText || 'Learn More'}</a>
+                                )}
+                            </div>
+                        )}
+
+                        {campaign.type === 'bottom' && (
+                            <div className="absolute bottom-0 left-0 w-full z-[100] bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 border-t-2 border-indigo-500 shadow-[0_-10px_40px_rgba(79,70,229,0.3)]">
+                                <div className={`flex items-center justify-between ${campaign.fullMedia ? 'h-24' : 'h-20 px-4'} relative overflow-hidden`}>
+                                    {campaign.fullMedia ? (
+                                        <div className="absolute inset-0 w-full h-full">
+                                            {campaign.mediaType === 'video' ? (
+                                                <video src={mediaPreview} autoPlay loop muted className="w-full h-full object-cover" />
+                                            ) : (
+                                                <img src={mediaPreview} alt="Ad" className="w-full h-full object-cover" />
+                                            )}
+                                            {/* Overlay to ensure close button is visible if enabled */}
+                                            {campaign.canClose !== false && (
+                                                <button className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-black/50 rounded-full text-white text-sm z-30">✕</button>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="absolute inset-0 bg-white/5 opacity-20 bg-[length:4px_4px]"></div>
+                                            <div className="absolute top-0 left-1/4 w-32 h-full bg-white/5 skew-x-[-20deg] blur-xl"></div>
+
+                                            {/* Left */}
+                                            <div className="flex items-center h-full flex-1">
+                                                <div className="relative h-16 aspect-[16/9] mr-4 overflow-hidden -skew-x-12 border-r-2 border-indigo-500/50">
+                                                    {campaign.mediaType === 'video' ? (
+                                                        <video src={mediaPreview} autoPlay loop muted className="w-full h-full object-cover skew-x-12 scale-110" />
+                                                    ) : (
+                                                        <img src={mediaPreview} alt="Ad" className="w-full h-full object-cover skew-x-12 scale-110" />
+                                                    )}
+                                                </div>
+                                                <div className="z-10">
+                                                    <h3 className="font-black text-white text-lg italic tracking-wider uppercase drop-shadow">
+                                                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500">{campaign.name || 'Campaign'}</span>
+                                                    </h3>
+                                                    <p className="text-[10px] text-indigo-200 font-bold tracking-wide uppercase">Limited Time Offer</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Right */}
+                                            <div className="flex items-center space-x-4">
+                                                {campaign.showButton !== false && (
+                                                    <button className="px-6 py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-slate-900 font-black text-sm uppercase italic tracking-widest -skew-x-12 border-2 border-yellow-200 shadow-lg glow">
+                                                        <span className="skew-x-12">{campaign.ctaText || 'Play Now'}</span>
+                                                    </button>
+                                                )}
+                                                {campaign.canClose !== false && (
+                                                    <button className="w-6 h-6 flex items-center justify-center bg-white/10 rounded-full text-white/50 text-xs">✕</button>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+                <p className="text-center text-slate-400 text-xs mt-4">
+                    * This is a simulated preview. Actual rendering may vary slightly based on screen size.
+                </p>
+            </div>
         </div>
     );
 };

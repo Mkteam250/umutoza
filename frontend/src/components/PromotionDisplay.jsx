@@ -19,9 +19,8 @@ const PromotionDisplay = ({ forceActive = false }) => {
         setActivePromotions(prev => prev.filter(p => p.id !== id));
     }, []);
 
-    const selectPromotionsToDisplay = useCallback((currentPromotions) => {
-        const now = Date.now();
-        const isoNow = new Date().toISOString().split('T')[0];
+    const selectPromotionsToDisplay = useCallback((currentPromotions, nowValue) => {
+        const isoNow = new Date(nowValue).toISOString().split('T')[0];
 
         // Filter by eligibility
         const checkEligibility = (promo) => {
@@ -36,7 +35,7 @@ const PromotionDisplay = ({ forceActive = false }) => {
             if (lastShown) {
                 const lastShownTime = parseInt(lastShown);
                 const frequencyMs = promo.frequency * (promo.frequencyUnit === 'hours' ? 3600000 : (promo.frequencyUnit === 'days' ? 86400000 : 60000));
-                if ((now - lastShownTime) < frequencyMs) return false;
+                if ((nowValue - lastShownTime) < frequencyMs) return false;
             }
 
             return true;
@@ -59,7 +58,7 @@ const PromotionDisplay = ({ forceActive = false }) => {
             const isAlreadyShowing = activePromotions.some(ap => ap.id === promo.id);
             if (!isAlreadyShowing) {
                 trackImpression(promo.id);
-                localStorage.setItem(`promo_last_shown_${promo.id}`, now.toString());
+                localStorage.setItem(`promo_last_shown_${promo.id}`, nowValue.toString());
 
                 // Auto-hide logic for popups
                 if (promo.type === 'popup' && promo.displayDuration > 0) {
@@ -85,7 +84,9 @@ const PromotionDisplay = ({ forceActive = false }) => {
 
             if (allPromotions.length > 0) {
                 allPromotions.sort((a, b) => (b.priority || 0) - (a.priority || 0));
-                selectPromotionsToDisplay(allPromotions);
+                // Get time here, outside of logic blocks to satisfy purity checks
+                const now = Date.now();
+                selectPromotionsToDisplay(allPromotions, now);
             }
         } catch (error) {
             console.error('Error fetching promotions');
@@ -93,7 +94,10 @@ const PromotionDisplay = ({ forceActive = false }) => {
     }, [apiUrl, selectPromotionsToDisplay]);
 
     useEffect(() => {
-        fetchPromotions();
+        const init = async () => {
+            await fetchPromotions();
+        };
+        init();
         const interval = setInterval(fetchPromotions, 30000);
         return () => clearInterval(interval);
     }, [fetchPromotions]);
