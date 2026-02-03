@@ -64,6 +64,7 @@ const Landingpage = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
+            <button onClick={() => handleNavClick('/amategeko')} className="text-indigo-800 font-bold hover:text-indigo-600 uppercase tracking-wide text-sm transition-colors">Amategeko</button>
             <button onClick={() => handleNavClick('/info')} className="text-indigo-800 font-bold hover:text-indigo-600 uppercase tracking-wide text-sm transition-colors">Serivisi</button>
             <button onClick={() => handleNavClick('/contact')} className="text-indigo-800 font-bold hover:text-indigo-600 uppercase tracking-wide text-sm transition-colors">Tuvugishe</button>
             <button onClick={handleStart} className="px-6 lg:px-8 py-3 bg-indigo-600 text-white rounded-full font-black text-sm shadow-xl shadow-indigo-200 hover:bg-indigo-700 transition-all hover:scale-105 active:scale-95">TANGIRA TEST</button>
@@ -86,6 +87,12 @@ const Landingpage = () => {
         {/* Mobile Menu */}
         <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${mobileMenuOpen ? 'max-h-80 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
           <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/50 p-4 space-y-3">
+            <button
+              onClick={() => handleNavClick('/amategeko')}
+              className="w-full text-left px-4 py-3 text-indigo-800 font-bold hover:bg-indigo-50 rounded-xl uppercase tracking-wide text-sm transition-colors"
+            >
+              Amategeko
+            </button>
             <button
               onClick={() => handleNavClick('/info')}
               className="w-full text-left px-4 py-3 text-indigo-800 font-bold hover:bg-indigo-50 rounded-xl uppercase tracking-wide text-sm transition-colors"
@@ -126,7 +133,7 @@ const Landingpage = () => {
               Kora Ikizamini
             </button>
             <button
-              onClick={() => router.push('/info')}
+              onClick={() => handleNavClick('/info')}
               className="px-12 py-5 bg-white text-indigo-600 border-2 border-indigo-100 rounded-[25px] font-bold text-xl transition-all hover:bg-indigo-50 active:scale-95"
             >
               Andi Makuru

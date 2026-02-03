@@ -27,16 +27,30 @@ const QuizTestPage = () => {
   const [toast, setToast] = useState(null);
 
   // Session & Profile Data
-  const [session, setSession] = useState(() => {
-    const savedId = localStorage.getItem('umutoza_session_id');
-    return savedId ? { id: savedId } : null;
-  });
+  const [session, setSession] = useState(null);
   const [userData, setUserData] = useState({
-    name: localStorage.getItem('umutoza_user_name') || '',
+    name: '',
     image: null,
-    persistedImageUrl: localStorage.getItem('umutoza_user_image') || null
+    persistedImageUrl: null
   });
-  const [imagePreview, setImagePreview] = useState(localStorage.getItem('umutoza_user_image') || null);
+  const [imagePreview, setImagePreview] = useState(null);
+
+  // Initialize from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedId = localStorage.getItem('umutoza_session_id');
+      const savedName = localStorage.getItem('umutoza_user_name');
+      const savedImage = localStorage.getItem('umutoza_user_image');
+
+      if (savedId) setSession({ id: savedId });
+      setUserData(prev => ({
+        ...prev,
+        name: savedName || '',
+        persistedImageUrl: savedImage || null
+      }));
+      setImagePreview(savedImage || null);
+    }
+  }, []);
 
   // Quiz States
   const [questions, setQuestions] = useState([]);

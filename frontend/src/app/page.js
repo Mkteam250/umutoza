@@ -1,7 +1,7 @@
 import Landingpage from '@/components/landingpage';
 
 export const metadata = {
-  title: "Umutoza - Pass Your Rwanda Provisional Driving Test 2024/2025",
+  title: "Amategeko y'umuhanda",
   description: "Umutoza ni urubuga rwa mbere mu Rwanda rugufasha kwitegura neza ikizamini cy'uruhushya rw'agateganyo. Gutsinda k'ubuntu kandi mu buryo bworoshye.",
   keywords: "Umutoza, Rwanda provisional test, amategeko y'umuhanda, Rwanda driving license, ikizamini cy'agateganyo, road rules Rwanda",
   openGraph: {
