@@ -61,7 +61,7 @@ export default async function QuestionPage({ params }) {
             <div className="min-h-screen flex items-center justify-center bg-[#F0E6F7]">
                 <div className="text-center">
                     <h2 className="text-2xl font-black text-slate-400">Ikibazo ntikibonetse.</h2>
-                    <a href="/amategeko" className="text-indigo-600 font-bold underline mt-4 block">Subira inyuma</a>
+                    <Link href="/amategeko" className="text-indigo-600 font-bold underline mt-4 block">Subira inyuma</Link>
                 </div>
             </div>
         );

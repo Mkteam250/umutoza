@@ -103,7 +103,7 @@ const QuestionDetailClient = ({ question, nextQuestionId }) => {
                                     Ubusobanuro nyabwo
                                 </h3>
                                 <p className="text-yellow-900/80 font-medium text-base md:text-lg leading-relaxed relative z-10">
-                                    {question.explanation || `Igisubizo nyacyo kiboneka ku nyuguti ya ${String.fromCharCode(65 + question.correctAnswerIndex)}. Ibi bishingiye ku mategeko y'izina kwayo y'umuhanda mu Rwanda.`}
+                                    {question.explanation || `Igisubizo nyacyo kiboneka ku nyuguti ya ${String.fromCharCode(65 + question.correctAnswerIndex)}. Ibi bishingiye ku mategeko y&apos;izina kwayo y&apos;umuhanda mu Rwanda.`}
                                 </p>
                             </div>
                         </div>
@@ -113,7 +113,7 @@ const QuestionDetailClient = ({ question, nextQuestionId }) => {
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
                             <h3 className="font-black text-xl md:text-2xl mb-3 relative z-10 italic">Witeguye Ikizamini?</h3>
                             <p className="text-indigo-200/80 mb-6 font-medium text-sm md:text-base relative z-10">
-                                Gerageza ikizamini cyuzuye gifite ibibazo 20 nk'ibyo mu kigo cy'igihugu cy'igipolisi.
+                                Gerageza ikizamini cyuzuye gifite ibibazo 20 nk&apos;ibyo mu kigo cy&apos;igihugu cy&apos;igipolisi.
                             </p>
                             <Link
                                 href="/test"

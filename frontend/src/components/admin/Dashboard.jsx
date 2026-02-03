@@ -129,7 +129,10 @@ const Dashboard = () => {
             return;
         }
 
-        performSync();
+        const init = async () => {
+            await performSync();
+        };
+        init();
         const interval = setInterval(performSync, 3000); // 3 seconds fast polling for realtime
         const clock = setInterval(() => setTime(new Date()), 1000);
 

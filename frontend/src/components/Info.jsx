@@ -26,10 +26,10 @@ const Info = () => {
             {/* Hero */}
             <div className="pt-32 pb-20 px-6 md:px-12 lg:px-24 container mx-auto">
                 <h1 className="text-4xl md:text-6xl font-extrabold text-indigo-900 mb-6 font-heading" data-aos="fade-up">
-                    Ihuriro ry' <span className="text-indigo-600">Amakuru</span>
+                    Ihuriro ry&apos; <span className="text-indigo-600">Amakuru</span>
                 </h1>
                 <p className="text-xl text-indigo-800/60 max-w-3xl mb-16 leading-relaxed" data-aos="fade-up" data-aos-delay="100">
-                    Ibyo ukeneye kumenya byose ku bijyanye n'uruhushya rw'agateganyo mu Rwanda n'amategeko y'umuhanda mu mwanya umwe.
+                    Ibyo ukeneye kumenya byose ku bijyanye n&apos;uruhushya rw&apos;agateganyo mu Rwanda n&apos;amategeko y&apos;umuhanda mu mwanya umwe.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 mb-20">
@@ -55,7 +55,7 @@ const Info = () => {
 
                     <h2 className="text-3xl md:text-4xl font-black text-indigo-900 mb-8 relative z-10 font-heading">Witeguye kugerageza ubumenyi bwawe?</h2>
                     <p className="text-lg text-indigo-800/60 mb-10 max-w-xl mx-auto relative z-10 font-medium">
-                        Gusoma ni byiza, ariko kwitoza ni byo byiza kurushaho. Imyitozo yacu ihura neza n'ikizamini nyir'izina.
+                        Gusoma ni byiza, ariko kwitoza ni byo byiza kurushaho. Imyitozo yacu ihura neza n&apos;ikizamini nyir&apos;izina.
                     </p>
                     <button onClick={() => router.push('/test')} className="px-10 py-5 bg-indigo-600 text-white rounded-[25px] font-black text-xl shadow-xl hover:bg-indigo-700 transition-all active:scale-95 relative z-10">Tangira Imyitozo</button>
                 </div>

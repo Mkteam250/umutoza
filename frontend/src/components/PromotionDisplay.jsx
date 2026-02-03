@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import axios from 'axios';
 
@@ -9,39 +9,17 @@ const PromotionDisplay = ({ forceActive = false }) => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://umutoza-umutoza.hf.space';
     const pathname = usePathname();
 
-    useEffect(() => {
-        fetchPromotions();
-        const interval = setInterval(fetchPromotions, 30000); // Check more frequently for scheduling
-        return () => clearInterval(interval);
-    }, [forceActive]);
-
-    useEffect(() => {
-        // Professional content offset: add padding to body when bottom ad is active
-        // This ensures the user can scroll to see everything on the page
-        if (activePromotions.some(p => p.type === 'bottom')) {
-            document.body.style.paddingBottom = '100px';
-        } else {
-            document.body.style.paddingBottom = '0px';
-        }
-        return () => { document.body.style.paddingBottom = '0px'; };
-    }, [activePromotions]);
-
-    const fetchPromotions = async () => {
+    const trackImpression = useCallback(async (id) => {
         try {
-            const res = await axios.get(`${apiUrl}/api/promotions/public`);
-            let allPromotions = res.data;
+            await axios.post(`${apiUrl}/api/promotions/${id}/impression`);
+        } catch (e) { /* ignore */ }
+    }, [apiUrl]);
 
-            if (allPromotions.length > 0) {
-                // 1. Sort by priority (Higher first)
-                allPromotions.sort((a, b) => (b.priority || 0) - (a.priority || 0));
-                selectPromotionsToDisplay(allPromotions);
-            }
-        } catch (error) {
-            console.error('Error fetching promotions');
-        }
-    };
+    const handleClose = useCallback((id) => {
+        setActivePromotions(prev => prev.filter(p => p.id !== id));
+    }, []);
 
-    const selectPromotionsToDisplay = (currentPromotions) => {
+    const selectPromotionsToDisplay = useCallback((currentPromotions) => {
         const now = Date.now();
         const isoNow = new Date().toISOString().split('T')[0];
 
@@ -70,9 +48,6 @@ const PromotionDisplay = ({ forceActive = false }) => {
 
         const newStates = [];
 
-        // Logic: Pick the HIGHEST priority item that is NOT already showing
-        // If a higher priority item is now eligible than what's currently showing, it will replace it (managed by state update)
-
         const bestPopup = eligiblePopups[0]; // Already sorted by priority
         const bestBottom = eligibleBottoms[0];
 
@@ -81,7 +56,8 @@ const PromotionDisplay = ({ forceActive = false }) => {
 
         // Update state and track if it's a NEW promotion
         newStates.forEach(promo => {
-            if (!activePromotions.some(ap => ap.id === promo.id)) {
+            const isAlreadyShowing = activePromotions.some(ap => ap.id === promo.id);
+            if (!isAlreadyShowing) {
                 trackImpression(promo.id);
                 localStorage.setItem(`promo_last_shown_${promo.id}`, now.toString());
 
@@ -94,29 +70,46 @@ const PromotionDisplay = ({ forceActive = false }) => {
             }
         });
 
-        // Only update if something actually changed to avoid flicker
         const currentIds = activePromotions.map(p => p.id).sort().join(',');
         const nextIds = newStates.map(p => p.id).sort().join(',');
 
         if (currentIds !== nextIds) {
             setActivePromotions(newStates);
         }
-    };
+    }, [activePromotions, forceActive, handleClose, trackImpression]);
 
-    const trackImpression = async (id) => {
+    const fetchPromotions = useCallback(async () => {
         try {
-            await axios.post(`${apiUrl}/api/promotions/${id}/impression`);
-        } catch (e) { /* ignore */ }
-    };
+            const res = await axios.get(`${apiUrl}/api/promotions/public`);
+            let allPromotions = res.data;
+
+            if (allPromotions.length > 0) {
+                allPromotions.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+                selectPromotionsToDisplay(allPromotions);
+            }
+        } catch (error) {
+            console.error('Error fetching promotions');
+        }
+    }, [apiUrl, selectPromotionsToDisplay]);
+
+    useEffect(() => {
+        fetchPromotions();
+        const interval = setInterval(fetchPromotions, 30000);
+        return () => clearInterval(interval);
+    }, [fetchPromotions]);
+
+    useEffect(() => {
+        if (activePromotions.some(p => p.type === 'bottom')) {
+            document.body.style.paddingBottom = '100px';
+        } else {
+            document.body.style.paddingBottom = '0px';
+        }
+    }, [activePromotions]);
 
     const trackClick = async (id) => {
         try {
             await axios.post(`${apiUrl}/api/promotions/${id}/click`);
         } catch (e) { /* ignore */ }
-    };
-
-    const handleClose = (id) => {
-        setActivePromotions(prev => prev.filter(p => p.id !== id));
     };
 
     const isHiddenPath = pathname.includes('/admin');
@@ -125,7 +118,6 @@ const PromotionDisplay = ({ forceActive = false }) => {
     return (
         <>
             {activePromotions.map(promo => {
-                // Key including ID ensures re-animation when swapped
                 if (promo.type === 'popup') {
                     const positionClasses = {
                         'center': 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
@@ -234,7 +226,7 @@ const PromotionDisplay = ({ forceActive = false }) => {
                                                     <h3 className="font-black text-white text-base md:text-2xl italic tracking-wider uppercase drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
                                                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500">{promo.name}</span>
                                                     </h3>
-                                                    <p className="text-xs md:text-sm text-indigo-200 font-bold tracking-wide line-clamp-1 uppercase">Limited Time Offer • Don't Miss Out!</p>
+                                                    <p className="text-xs md:text-sm text-indigo-200 font-bold tracking-wide line-clamp-1 uppercase">Limited Time Offer • Don&apos;t Miss Out!</p>
                                                 </div>
                                             </a>
 

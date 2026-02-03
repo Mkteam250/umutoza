@@ -164,7 +164,7 @@ const QuestionsManage = ({ isEmbedded = false }) => {
                         {!isEmbedded && (
                             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
                                 <div>
-                                    <h2 className="text-3xl font-black text-slate-900">Ubugenzuzi bw'Ibibazo</h2>
+                                    <h2 className="text-3xl font-black text-slate-900">Ubugenzuzi bw&apos;Ibibazo</h2>
                                     <p className="text-slate-400 text-sm mt-1 font-bold">Hamaze kuboneka ibibazo {questions.length} mu kigega.</p>
                                 </div>
                                 <button
@@ -178,7 +178,7 @@ const QuestionsManage = ({ isEmbedded = false }) => {
 
                         {isEmbedded && (
                             <div className="flex justify-between items-center mb-8">
-                                <h2 className="text-xl font-black text-slate-800 uppercase tracking-widest">Ububiko bw'Ibibazo</h2>
+                                <h2 className="text-xl font-black text-slate-800 uppercase tracking-widest">Ububiko bw&apos;Ibibazo</h2>
                                 <button
                                     onClick={() => { resetForm(); setView('create'); }}
                                     className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold text-xs uppercase tracking-widest shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all"

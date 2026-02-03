@@ -39,7 +39,7 @@ export default async function AmategekoPage() {
 
                 <div className="max-w-7xl mx-auto relative z-10 text-center">
                     <h1 className="text-4xl md:text-6xl font-black mb-6 font-heading tracking-tight">
-                        Isomero ry' <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">Amategeko</span>
+                        Isomero ry&apos; <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">Amategeko</span>
                     </h1>
                     <p className="text-xl text-indigo-200 max-w-2xl mx-auto font-medium">
                         Shakisha, iga, kandi wimenyereze ibibazo byose bishoboka bizaza mu kizamini cyawe.

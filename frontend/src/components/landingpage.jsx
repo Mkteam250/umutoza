@@ -123,7 +123,7 @@ const Landingpage = () => {
             <span className="text-indigo-600 font-black">Ikizamini Ubu</span>
           </h1>
           <p className="text-lg text-indigo-700/70 max-w-lg mb-12 leading-relaxed">
-            Itegure neza ukoresheje ibizamini byacu bijyanye n'igihe. Gutsinda ku nshuro ya mbere ni intego yacu ya mbere mu Rwanda.
+            Itegure neza ukoresheje ibizamini byacu bijyanye n&apos;igihe. Gutsinda ku nshuro ya mbere ni intego yacu ya mbere mu Rwanda.
           </p>
           <div className="flex flex-wrap gap-4">
             <button

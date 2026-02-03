@@ -35,10 +35,6 @@ const CampaignManager = () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://umutoza-umutoza.hf.space';
     const fileInputRef = useRef(null);
 
-    useEffect(() => {
-        fetchCampaigns();
-    }, []);
-
     const fetchCampaigns = async () => {
         try {
             const token = localStorage.getItem('adminToken');
@@ -52,6 +48,10 @@ const CampaignManager = () => {
             setIsLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchCampaigns();
+    }, []);
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
