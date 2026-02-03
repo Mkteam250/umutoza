@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 const Messages = () => {
@@ -9,7 +9,7 @@ const Messages = () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://umutoza-umutoza.hf.space';
     const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
 
-    const fetchMessages = async () => {
+    const fetchMessages = useCallback(async () => {
         try {
             const res = await axios.get(`${apiUrl}/api/messages`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -20,14 +20,11 @@ const Messages = () => {
             console.error('Error fetching messages:', err);
             setIsLoading(false);
         }
-    };
+    }, [apiUrl, token]);
 
     useEffect(() => {
-        const init = async () => {
-            await fetchMessages();
-        };
-        init();
-    }, []);
+        fetchMessages();
+    }, [fetchMessages]);
 
     const handleMarkAsRead = async (id) => {
         try {

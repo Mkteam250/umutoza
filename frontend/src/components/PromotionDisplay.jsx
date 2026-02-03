@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import axios from 'axios';
+import Image from 'next/image';
 
 const PromotionDisplay = ({ forceActive = false }) => {
     const [activePromotions, setActivePromotions] = useState([]); // Store multiple active promos
@@ -160,10 +161,13 @@ const PromotionDisplay = ({ forceActive = false }) => {
                                             className="w-full max-h-[60vh] md:max-h-[400px] object-cover transition-all duration-500 group-hover:max-h-[80vh] group-hover:object-contain bg-black"
                                         />
                                     ) : (
-                                        <img
+                                        <Image
                                             src={`${apiUrl}${promo.mediaUrl}`}
                                             alt={promo.name}
+                                            width={800}
+                                            height={450}
                                             className="w-full max-h-[60vh] md:max-h-[400px] object-cover transition-all duration-500 group-hover:max-h-[80vh] group-hover:object-contain bg-gray-100"
+                                            unoptimized
                                         />
                                     )}
                                 </a>
@@ -203,7 +207,13 @@ const PromotionDisplay = ({ forceActive = false }) => {
                                             {promo.mediaType === 'video' ? (
                                                 <video src={`${apiUrl}${promo.mediaUrl}`} autoPlay loop muted playsInline className="w-full h-full object-cover group-hover:object-contain group-active:object-contain bg-black" />
                                             ) : (
-                                                <img src={`${apiUrl}${promo.mediaUrl}`} alt="Promo" className="w-full h-full object-cover group-hover:object-contain group-active:object-contain transition-all duration-500 bg-black/40" />
+                                                <Image
+                                                    src={`${apiUrl}${promo.mediaUrl}`}
+                                                    alt="Promo"
+                                                    fill
+                                                    className="object-cover group-hover:object-contain group-active:object-contain transition-all duration-500 bg-black/40"
+                                                    unoptimized
+                                                />
                                             )}
                                             <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors"></div>
                                         </a>
@@ -223,7 +233,13 @@ const PromotionDisplay = ({ forceActive = false }) => {
                                                     {promo.mediaType === 'video' ? (
                                                         <video src={`${apiUrl}${promo.mediaUrl}`} autoPlay loop muted playsInline className="w-full h-full object-cover md:skew-x-12 md:scale-110 group-hover:skew-x-0 group-hover:scale-100 group-hover:object-contain group-active:skew-x-0 group-active:scale-100 group-active:object-contain bg-black" />
                                                     ) : (
-                                                        <img src={`${apiUrl}${promo.mediaUrl}`} alt="Promo" className="w-full h-full object-cover md:skew-x-12 md:scale-110 group-hover:skew-x-0 group-hover:scale-100 group-hover:object-contain group-active:skew-x-0 group-active:scale-100 group-active:object-contain transition-all duration-700 bg-black/40" />
+                                                        <Image
+                                                            src={`${apiUrl}${promo.mediaUrl}`}
+                                                            alt="Promo"
+                                                            fill
+                                                            className="object-cover md:skew-x-12 md:scale-110 group-hover:skew-x-0 group-hover:scale-100 group-hover:object-contain group-active:skew-x-0 group-active:scale-100 group-active:object-contain transition-all duration-700 bg-black/40"
+                                                            unoptimized
+                                                        />
                                                     )}
                                                 </div>
                                                 <div className="z-10 py-2 pr-2">
