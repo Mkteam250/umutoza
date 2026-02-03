@@ -14,8 +14,21 @@ const outfit = Outfit({
 });
 
 export const metadata = {
-  title: "Umutoza - Pass Your Rwanda Provisional Driving Test 2024/2025",
-  description: "Umutoza ni urubuga rwa mbere mu Rwanda rugufasha kwitegura neza ikizamini cy'uruhushya rw'agateganyo.",
+  metadataBase: new URL('https://umutoza.rw'),
+  title: {
+    default: "Umutoza - Pass Your Rwanda Provisional Driving Test 2025",
+    template: "%s | Umutoza"
+  },
+  description: "Umutoza ni urubuga rwa mbere mu Rwanda rugufasha kwitegura neza ikizamini cy'uruhushya rw'agateganyo. Iga amategeko y'umuhanda mu buryo bworoshye.",
+  keywords: ["Rwanda provisional driving test", "amategeko y'umuhanda", "ikizamini cy'agateganyo", "driving license Rwanda"],
+  openGraph: {
+    title: "Umutoza - Rwanda Driving Test Prep",
+    description: "Prepare for your driving test with Rwanda's #1 study platform.",
+    url: 'https://umutoza.rw',
+    siteName: 'Umutoza',
+    locale: 'rw_RW',
+    type: 'website',
+  },
   icons: {
     icon: "/umutoza.png",
   },

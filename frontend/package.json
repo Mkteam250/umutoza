@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "pages:build": "npx @cloudflare/next-on-pages",
-    "pages:deploy": "npm run pages:build && npx wrangler pages deploy .vercel/output",
+    "pages:deploy": "npm run pages:build && npx wrangler pages deploy .vercel/output --project-name umutoza-web",
     "start": "next start",
     "lint": "eslint"
   },
