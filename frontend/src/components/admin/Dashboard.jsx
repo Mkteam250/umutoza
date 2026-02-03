@@ -129,7 +129,7 @@ const Dashboard = () => {
             return;
         }
 
-        const init = async () => {
+        const init = async () => { 
             await performSync();
         };
         init();
