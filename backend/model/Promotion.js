@@ -98,6 +98,10 @@ const promotionSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    trickOnClose: {
+        type: Boolean,
+        default: false
+    },
     startDate: {
         type: Date,
         default: null

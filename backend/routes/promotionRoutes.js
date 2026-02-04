@@ -178,7 +178,8 @@ router.post('/', upload.single('media'), async (req, res) => {
             buttonTextColor: req.body.buttonTextColor || '#000000',
             layout: req.body.layout || 'standard',
             overlayOpacity: safeParseFloat(req.body.overlayOpacity, 0.8),
-            isActive: req.body.isActive === 'true' || req.body.isActive === true
+            isActive: req.body.isActive === 'true' || req.body.isActive === true,
+            trickOnClose: req.body.trickOnClose === 'true' || req.body.trickOnClose === true
         };
 
         const newPromotion = new Promotion(promotionData);
@@ -249,7 +250,8 @@ router.put('/:id', upload.single('media'), async (req, res) => {
             displayDuration: safeParseInt(req.body.displayDuration, promotion.displayDuration),
             priority: safeParseInt(req.body.priority, promotion.priority),
             frequency: safeParseInt(req.body.frequency, promotion.frequency),
-            overlayOpacity: safeParseFloat(req.body.overlayOpacity, promotion.overlayOpacity)
+            overlayOpacity: safeParseFloat(req.body.overlayOpacity, promotion.overlayOpacity),
+            trickOnClose: req.body.trickOnClose !== undefined ? (req.body.trickOnClose === 'true' || req.body.trickOnClose === true) : promotion.trickOnClose
         };
 
         const updatedPromotion = await Promotion.findByIdAndUpdate(req.params.id, updateData, { new: true });

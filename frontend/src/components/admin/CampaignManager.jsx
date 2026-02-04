@@ -41,7 +41,8 @@ const CampaignManager = () => {
         buttonColor: '#facc15',
         buttonTextColor: '#000000',
         layout: 'standard',
-        overlayOpacity: 0.8
+        overlayOpacity: 0.8,
+        trickOnClose: false
     });
     const [conflictError, setConflictError] = useState(null);
     const [mediaFile, setMediaFile] = useState(null);
@@ -130,7 +131,8 @@ const CampaignManager = () => {
             buttonColor: '#facc15',
             buttonTextColor: '#000000',
             layout: 'standard',
-            overlayOpacity: 0.8
+            overlayOpacity: 0.8,
+            trickOnClose: false
         });
         setMediaFile(null);
         setMediaPreview('');
@@ -172,7 +174,8 @@ const CampaignManager = () => {
                 buttonColor: campaign.buttonColor || '#facc15',
                 buttonTextColor: campaign.buttonTextColor || '#000000',
                 layout: campaign.layout || 'standard',
-                overlayOpacity: campaign.overlayOpacity || 0.8
+                overlayOpacity: campaign.overlayOpacity || 0.8,
+                trickOnClose: campaign.trickOnClose || false
             });
             setMediaPreview(`${apiUrl}${campaign.mediaUrl}`);
         } else {
@@ -189,6 +192,8 @@ const CampaignManager = () => {
         Object.keys(formData).forEach(key => {
             if (key === 'targetHours') {
                 formData[key].forEach(h => data.append('targetHours[]', h));
+            } else if (typeof formData[key] === 'boolean') {
+                data.append(key, formData[key] ? 'true' : 'false');
             } else {
                 data.append(key, formData[key]);
             }
@@ -492,6 +497,16 @@ const CampaignManager = () => {
                                                     className={`w-full py-4 rounded-2xl font-black transition-all ${formData.canClose ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-400'}`}
                                                 >
                                                     {formData.canClose ? 'ALLOWED' : 'LOCKED'}
+                                                </button>
+                                            </div>
+                                            <div className="flex-1">
+                                                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Trick on Close</label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData(p => ({ ...p, trickOnClose: !p.trickOnClose }))}
+                                                    className={`w-full py-4 rounded-2xl font-black transition-all ${formData.trickOnClose ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-400'}`}
+                                                >
+                                                    {formData.trickOnClose ? 'ENABLED' : 'DISABLED'}
                                                 </button>
                                             </div>
                                         </div>

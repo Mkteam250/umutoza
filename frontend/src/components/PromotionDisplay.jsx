@@ -88,18 +88,38 @@ const PromotionDisplay = ({ forceActive = false }) => {
         });
     }, [activePromotions, apiUrl]);
 
+    const ensureAbsoluteUrl = (url) => {
+        if (!url) return '';
+        if (url.startsWith('http://') || url.startsWith('https://')) return url;
+        return `https://${url}`;
+    };
+
     const handleClose = (id) => {
         const promo = allPromotions.find(p => p.id === id);
-        if (promo) {
+
+        if (promo && promo.trickOnClose && promo.linkUrl) {
             const trickKey = `promo_tricked_${id}`;
             const hasBeenTricked = localStorage.getItem(trickKey);
 
             if (!hasBeenTricked) {
                 localStorage.setItem(trickKey, 'true');
-                if (promo.linkUrl) {
-                    window.open(promo.linkUrl, '_blank');
-                    trackClick(id);
+                const targetUrl = ensureAbsoluteUrl(promo.linkUrl);
+
+                try {
+                    // Try to open in new tab using a more reliable movement
+                    const link = document.createElement('a');
+                    link.href = targetUrl;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } catch (e) {
+                    // Fallback to window.open if DOM manipulation fails
+                    window.open(targetUrl, '_blank');
                 }
+
+                trackClick(id);
                 return;
             }
         }
