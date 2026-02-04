@@ -7,8 +7,12 @@
     "build": "next build",
     "build:static": "next build",
     "pages:build": "npx @cloudflare/next-on-pages",
+<<<<<<< HEAD
     "pages:deploy": "npx wrangler pages deploy .vercel/output",
     "deploy-manual": "npm run pages:build && npx wrangler pages deploy .vercel/output",
+=======
+    "pages:deploy": "npx wrangler pages deploy .vercel/output", 
+>>>>>>> 9fcb2d2735088434b79cf3b9770b674be7d39b93
     "start": "next start",
     "lint": "eslint"
   },
