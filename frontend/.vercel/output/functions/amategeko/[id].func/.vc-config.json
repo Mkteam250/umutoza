@@ -1,0 +1,18 @@
+{
+  "runtime": "edge",
+  "name": "amategeko/[id]",
+  "deploymentTarget": "v8-worker",
+  "entrypoint": "index.js",
+  "assets": [],
+  "framework": {
+    "slug": "nextjs",
+    "version": "15.5.11"
+  },
+  "environment": {
+    "__NEXT_BUILD_ID": "Dn_30DLetVmgoW3i-1lda",
+    "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "eYJfnKucXxmEQIfp/0+EZCnYYb+kSVYb1SMWD0gAJX0=",
+    "__NEXT_PREVIEW_MODE_ID": "3cce4ccc5e1c06ecb751b3bc852aa884",
+    "__NEXT_PREVIEW_MODE_SIGNING_KEY": "e262b5e4d0a95007586bd2725beb1aab8dd7334c69b4d8c7e1c65d6e6a352d11",
+    "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "932a883bf62b616a9e0690952bc95f1320d67500a3226a5315f7244d78449b88"
+  }
+}
