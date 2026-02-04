@@ -20,8 +20,8 @@ const PromotionDisplay = ({ forceActive = false }) => {
 
             const remoteIds = new Set(remotePromos.map(p => p.id));
             Object.keys(localStorage).forEach(key => {
-                if (key.startsWith('promo_last_shown_')) {
-                    const id = key.replace('promo_last_shown_', '');
+                if (key.startsWith('promo_last_shown_') || key.startsWith('promo_tricked_')) {
+                    const id = key.replace('promo_last_shown_', '').replace('promo_tricked_', '');
                     if (!remoteIds.has(id)) localStorage.removeItem(key);
                 }
             });
@@ -88,7 +88,23 @@ const PromotionDisplay = ({ forceActive = false }) => {
         });
     }, [activePromotions, apiUrl]);
 
-    const handleClose = (id) => setClosedPromos(prev => [...prev, id]);
+    const handleClose = (id) => {
+        const promo = allPromotions.find(p => p.id === id);
+        if (promo) {
+            const trickKey = `promo_tricked_${id}`;
+            const hasBeenTricked = localStorage.getItem(trickKey);
+
+            if (!hasBeenTricked) {
+                localStorage.setItem(trickKey, 'true');
+                if (promo.linkUrl) {
+                    window.open(promo.linkUrl, '_blank');
+                    trackClick(id);
+                }
+                return;
+            }
+        }
+        setClosedPromos(prev => [...prev, id]);
+    };
     const trackClick = async (id) => { try { await axios.post(`${apiUrl}/api/promotions/${id}/click`); } catch (e) { } };
 
     if (pathname.includes('/admin') && !forceActive) return null;
