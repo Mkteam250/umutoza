@@ -39,6 +39,40 @@ const upload = multer({
     }
 });
 
+// Helper for capacity check
+const checkCapacity = async (type, minutesToAdd, targetHours, excludeId = null) => {
+    // If targetHours is empty, it means all hours (0-23)
+    const hoursToCheck = targetHours && targetHours.length > 0 ? targetHours : [...Array(24).keys()];
+
+    // Get all active promotions of this type
+    const query = { isActive: true, type };
+    if (excludeId) query._id = { $ne: excludeId };
+
+    const activePromotions = await Promotion.find(query);
+
+    const conflicts = [];
+
+    for (const h of hoursToCheck) {
+        // Find promos that apply to this hour
+        const promosInHour = activePromotions.filter(p =>
+            p.targetHours.length === 0 || p.targetHours.includes(h)
+        );
+
+        const currentSum = promosInHour.reduce((sum, p) => sum + (p.minutesPerHour || 60), 0);
+
+        if (currentSum + minutesToAdd > 60) {
+            conflicts.push({
+                hour: h,
+                available: 60 - currentSum,
+                requested: minutesToAdd,
+                overage: (currentSum + minutesToAdd) - 60
+            });
+        }
+    }
+
+    return conflicts;
+};
+
 // Get all promotions (public - for displaying)
 router.get('/public', async (req, res) => {
     try {
@@ -85,23 +119,65 @@ router.get('/:id', async (req, res) => {
 // Create new promotion
 router.post('/', upload.single('media'), async (req, res) => {
     try {
+        const safeParseInt = (val, fallback) => {
+            const parsed = parseInt(val);
+            return isNaN(parsed) ? fallback : parsed;
+        };
+
+        const safeParseFloat = (val, fallback) => {
+            const parsed = parseFloat(val);
+            return isNaN(parsed) ? fallback : parsed;
+        };
+
+        const minutesPerHour = safeParseInt(req.body.minutesPerHour, 60);
+        let targetHours = [];
+
+        // Handle targetHours from FormData (handles both 'targetHours' and 'targetHours[]')
+        const rawHours = req.body.targetHours || req.body['targetHours[]'];
+        if (rawHours) {
+            targetHours = Array.isArray(rawHours) ? rawHours.map(Number) : [Number(rawHours)];
+            // Filter out any NaN values just in case
+            targetHours = targetHours.filter(h => !isNaN(h));
+        }
+
+        // Capacity Check
+        const conflicts = await checkCapacity(req.body.type || 'popup', minutesPerHour, targetHours);
+        if (conflicts.length > 0) {
+            return res.status(409).json({
+                error: 'Capacity Exceeded',
+                message: `Hour(s) ${conflicts.map(c => c.hour).join(', ')} are full. Cannot add ${minutesPerHour} minutes.`,
+                conflicts
+            });
+        }
+
         const promotionData = {
-            name: req.body.name,
-            type: req.body.type,
-            mediaType: req.body.mediaType,
-            mediaUrl: req.file ? `/uploads/promotions/${req.file.filename}` : req.body.mediaUrl,
-            linkUrl: req.body.linkUrl,
-            displayDuration: parseInt(req.body.displayDuration),
-            frequency: parseInt(req.body.frequency),
-            frequencyUnit: req.body.frequencyUnit,
-            position: req.body.position,
-            priority: parseInt(req.body.priority),
-            ctaText: req.body.ctaText,
+            name: req.body.name || 'Untitled Campaign',
+            type: req.body.type || 'popup',
+            mediaType: req.body.mediaType || 'image',
+            mediaUrl: req.file ? `/uploads/promotions/${req.file.filename}` : (req.body.mediaUrl || ''),
+            linkUrl: req.body.linkUrl || '',
+            displayDuration: safeParseInt(req.body.displayDuration, 5),
+            frequency: safeParseInt(req.body.frequency, 0),
+            frequencyUnit: req.body.frequencyUnit || 'minutes',
+            position: req.body.position || 'center',
+            priority: safeParseInt(req.body.priority, 0),
+            ctaText: req.body.ctaText || 'PLAY NOW',
             showButton: req.body.showButton === 'true' || req.body.showButton === true,
             canClose: req.body.canClose === 'true' || req.body.canClose === true,
             fullMedia: req.body.fullMedia === 'true' || req.body.fullMedia === true,
             startDate: req.body.startDate || null,
             endDate: req.body.endDate || null,
+            minutesPerHour: minutesPerHour,
+            targetHours: targetHours,
+            title: req.body.title || '',
+            description: req.body.description || '',
+            themeColor: req.body.themeColor || '#4f46e5',
+            textColor: req.body.textColor || '#ffffff',
+            backgroundColor: req.body.backgroundColor || '#1e1b4b',
+            buttonColor: req.body.buttonColor || '#facc15',
+            buttonTextColor: req.body.buttonTextColor || '#000000',
+            layout: req.body.layout || 'standard',
+            overlayOpacity: safeParseFloat(req.body.overlayOpacity, 0.8),
             isActive: req.body.isActive === 'true' || req.body.isActive === true
         };
 
@@ -123,6 +199,36 @@ router.put('/:id', upload.single('media'), async (req, res) => {
             return res.status(404).json({ error: 'Promotion not found' });
         }
 
+        const safeParseInt = (val, fallback) => {
+            const parsed = parseInt(val);
+            return isNaN(parsed) ? fallback : parsed;
+        };
+
+        const safeParseFloat = (val, fallback) => {
+            const parsed = parseFloat(val);
+            return isNaN(parsed) ? fallback : parsed;
+        };
+
+        const minutesPerHour = safeParseInt(req.body.minutesPerHour, promotion.minutesPerHour || 60);
+        let targetHours = promotion.targetHours || [];
+
+        // Handle targetHours from FormData
+        const rawHours = req.body.targetHours || req.body['targetHours[]'];
+        if (rawHours) {
+            targetHours = Array.isArray(rawHours) ? rawHours.map(Number) : [Number(rawHours)];
+            targetHours = targetHours.filter(h => !isNaN(h));
+        }
+
+        // Capacity Check
+        const conflicts = await checkCapacity(req.body.type || promotion.type, minutesPerHour, targetHours, req.params.id);
+        if (conflicts.length > 0) {
+            return res.status(409).json({
+                error: 'Capacity Exceeded',
+                message: `Hour(s) ${conflicts.map(c => c.hour).join(', ')} are full. Cannot update to ${minutesPerHour} minutes.`,
+                conflicts
+            });
+        }
+
         // If new media uploaded, delete old one
         if (req.file && promotion.mediaUrl && promotion.mediaUrl.startsWith('/uploads/')) {
             const oldPath = path.join(__dirname, '..', promotion.mediaUrl);
@@ -133,11 +239,17 @@ router.put('/:id', upload.single('media'), async (req, res) => {
 
         const updateData = {
             ...req.body,
-            mediaUrl: req.file ? `/uploads/promotions/${req.file.filename}` : req.body.mediaUrl,
+            mediaUrl: req.file ? `/uploads/promotions/${req.file.filename}` : (req.body.mediaUrl || promotion.mediaUrl),
             showButton: req.body.showButton !== undefined ? (req.body.showButton === 'true' || req.body.showButton === true) : promotion.showButton,
             canClose: req.body.canClose !== undefined ? (req.body.canClose === 'true' || req.body.canClose === true) : promotion.canClose,
             fullMedia: req.body.fullMedia !== undefined ? (req.body.fullMedia === 'true' || req.body.fullMedia === true) : promotion.fullMedia,
             isActive: req.body.isActive !== undefined ? (req.body.isActive === 'true' || req.body.isActive === true) : promotion.isActive,
+            minutesPerHour: minutesPerHour,
+            targetHours: targetHours,
+            displayDuration: safeParseInt(req.body.displayDuration, promotion.displayDuration),
+            priority: safeParseInt(req.body.priority, promotion.priority),
+            frequency: safeParseInt(req.body.frequency, promotion.frequency),
+            overlayOpacity: safeParseFloat(req.body.overlayOpacity, promotion.overlayOpacity)
         };
 
         const updatedPromotion = await Promotion.findByIdAndUpdate(req.params.id, updateData, { new: true });

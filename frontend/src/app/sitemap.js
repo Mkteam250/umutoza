@@ -1,4 +1,5 @@
 const EXTERNAL_DATA_URL = process.env.NEXT_PUBLIC_API_URL || 'https://umutoza-umutoza.hf.space';
+export const dynamic = 'force-static';
 
 async function getQuestions() {
     try {
@@ -15,7 +16,7 @@ async function getQuestions() {
 }
 
 export default async function sitemap() {
-    const baseUrl = 'https://umutoza.rw'; // Or the production URL
+    const baseUrl = 'https://umutoza.pages.dev'; // Or the production URL
 
     const questions = await getQuestions();
 

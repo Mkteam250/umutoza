@@ -28,6 +28,44 @@ const promotionSchema = new mongoose.Schema({
         type: Number,
         default: 5
     },
+    // Design & Content
+    title: {
+        type: String,
+        default: ''
+    },
+    description: {
+        type: String,
+        default: ''
+    },
+    themeColor: {
+        type: String,
+        default: '#4f46e5' // Indigo 600
+    },
+    textColor: {
+        type: String,
+        default: '#ffffff'
+    },
+    backgroundColor: {
+        type: String,
+        default: '#1e1b4b' // Indigo 950
+    },
+    buttonColor: {
+        type: String,
+        default: '#facc15' // Yellow 400
+    },
+    buttonTextColor: {
+        type: String,
+        default: '#000000'
+    },
+    layout: {
+        type: String,
+        enum: ['standard', 'glassmorphism', 'minimal', 'bold'],
+        default: 'standard'
+    },
+    overlayOpacity: {
+        type: Number,
+        default: 0.8
+    },
     frequency: {
         type: Number,
         default: 60
@@ -67,6 +105,17 @@ const promotionSchema = new mongoose.Schema({
     endDate: {
         type: Date,
         default: null
+    },
+    // Hourly Time-Sharing Scheduling
+    minutesPerHour: {
+        type: Number,
+        default: 60, // How many minutes of the hour this ad takes (max 60)
+        min: 1,
+        max: 60
+    },
+    targetHours: {
+        type: [Number], // Array of hours (0-23) this ad is active in
+        default: [] // Empty means all 24 hours
     },
     isActive: {
         type: Boolean,

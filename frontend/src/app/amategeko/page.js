@@ -1,4 +1,6 @@
-export const runtime = 'edge';
+// export const runtime = 'edge'; // Removed for static export compatibility
+export const dynamic = 'force-static'; // Ensure static generation at build time
+
 import Link from 'next/link';
 import QuestionsList from '@/components/QuestionsList';
 
@@ -6,13 +8,15 @@ import QuestionsList from '@/components/QuestionsList';
 async function getQuestions() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://umutoza-umutoza.hf.space';
     try {
-        const res = await fetch(`${apiUrl}/api/admin/quiz`, { cache: 'no-store' });
+        console.log(`Fetching questions from: ${apiUrl}/api/admin/quiz`);
+        const res = await fetch(`${apiUrl}/api/admin/quiz`);
         if (!res.ok) {
-            throw new Error('Failed to fetch data');
+            throw new Error(`Failed to fetch data: ${res.status} ${res.statusText}`);
         }
         return res.json();
     } catch (error) {
         console.error("Error fetching questions:", error);
+        if (error.cause) console.error("Cause:", error.cause);
         return [];
     }
 }

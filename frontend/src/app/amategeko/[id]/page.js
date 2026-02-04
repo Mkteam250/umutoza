@@ -1,4 +1,4 @@
-export const runtime = 'edge';
+// export const runtime = 'edge'; // Removed for static export compatibility
 import React from 'react';
 import Link from 'next/link';
 import QuestionDetailClient from '@/components/QuestionDetailClient';
@@ -7,13 +7,17 @@ import QuestionDetailClient from '@/components/QuestionDetailClient';
 async function getData(id) {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://umutoza-umutoza.hf.space';
     try {
-        const res = await fetch(`${apiUrl}/api/admin/quiz`, { cache: 'no-store' });
-        if (!res.ok) throw new Error('Failed to fetch');
+        console.log(`Fetching specific question ${id} from: ${apiUrl}/api/admin/quiz`);
+        const res = await fetch(`${apiUrl}/api/admin/quiz`);
+        if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
 
         const questions = await res.json();
         const currentIndex = questions.findIndex(q => q.id.toString() === id);
 
-        if (currentIndex === -1) return { question: null, nextId: null };
+        if (currentIndex === -1) {
+            console.warn(`Question ${id} not found in list of ${questions.length}`);
+            return { question: null, nextId: null };
+        }
 
         const question = questions[currentIndex];
 
@@ -25,7 +29,24 @@ async function getData(id) {
         return { question, nextId };
 
     } catch (error) {
+        console.error(`Error fetching question ${id}:`, error);
         return { question: null, nextId: null };
+    }
+}
+
+// Generate static paths for export
+export async function generateStaticParams() {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://umutoza-umutoza.hf.space';
+    try {
+        console.log(`Fetching paths from: ${apiUrl}/api/admin/quiz`);
+        const res = await fetch(`${apiUrl}/api/admin/quiz`);
+        const questions = await res.json();
+        return questions.map((q) => ({
+            id: q.id.toString(),
+        }));
+    } catch (error) {
+        console.error("Error generating static params:", error);
+        return [];
     }
 }
 

@@ -3,16 +3,37 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 
-export default function QuestionsList({ initialQuestions }) {
+export default function QuestionsList({ initialQuestions = [] }) {
     const [searchTerm, setSearchTerm] = useState('');
+    const [questions, setQuestions] = useState(initialQuestions);
+
+    React.useEffect(() => {
+        if (!initialQuestions || initialQuestions.length === 0) {
+            const fetchQuestions = async () => {
+                try {
+                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://umutoza-umutoza.hf.space';
+                    const res = await fetch(`${apiUrl}/api/admin/quiz`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        setQuestions(data);
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch client-side questions", error);
+                }
+            };
+            fetchQuestions();
+        } else {
+            setQuestions(initialQuestions);
+        }
+    }, [initialQuestions]);
 
     const filteredQuestions = useMemo(() => {
-        if (!searchTerm.trim()) return initialQuestions;
+        if (!searchTerm.trim()) return questions;
         const lowerTerm = searchTerm.toLowerCase();
-        return initialQuestions.filter(q =>
+        return questions.filter(q =>
             q.questionText.toLowerCase().includes(lowerTerm)
         );
-    }, [initialQuestions, searchTerm]);
+    }, [questions, searchTerm]);
 
     return (
         <>

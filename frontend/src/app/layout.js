@@ -24,13 +24,15 @@ export const metadata = {
   openGraph: {
     title: "Umutoza - Rwanda Driving Test Prep",
     description: "Prepare for your driving test with Rwanda's #1 study platform.",
-    url: 'https://umutoza.rw',
+    url: 'https://umutoza.pages.dev',
     siteName: 'Umutoza',
     locale: 'rw_RW',
     type: 'website',
   },
   icons: {
     icon: "/umutoza.png",
+    shortcut: "/umutoza.png",
+    apple: "/umutoza.png",
   },
 };
 
