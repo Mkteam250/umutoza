@@ -14,7 +14,7 @@ const outfit = Outfit({
 });
 
 export const metadata = {
-  metadataBase: new URL('https://umutoza.rw'),
+  metadataBase: new URL('https://umutoza.pages.dev'),
   title: {
     default: "Umutoza - Pass Your Rwanda Provisional Driving Test 2025",
     template: "%s | Umutoza"
