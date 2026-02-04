@@ -20,8 +20,8 @@ const PromotionDisplay = ({ forceActive = false }) => {
 
             const remoteIds = new Set(remotePromos.map(p => p.id));
             Object.keys(localStorage).forEach(key => {
-                if (key.startsWith('promo_last_shown_') || key.startsWith('promo_tricked_')) {
-                    const id = key.replace('promo_last_shown_', '').replace('promo_tricked_', '');
+                if (key.startsWith('promo_last_shown_') || key.startsWith('promo_tricked_') || key.startsWith('promo_closed_at_')) {
+                    const id = key.replace('promo_last_shown_', '').replace('promo_tricked_', '').replace('promo_closed_at_', '');
                     if (!remoteIds.has(id)) localStorage.removeItem(key);
                 }
             });
@@ -51,6 +51,16 @@ const PromotionDisplay = ({ forceActive = false }) => {
                 if (p.type !== type) return false;
                 if (!p.isActive) return false;
                 if (closedPromos.includes(p.id)) return false;
+
+                // Persistence check: If closed within last 1 minute, don't show
+                const closedAt = localStorage.getItem(`promo_closed_at_${p.id}`);
+                if (closedAt) {
+                    const elapsed = Date.now() - parseInt(closedAt);
+                    if (elapsed < 60000) return false;
+                    // If over 1 min, cleanup stale key
+                    localStorage.removeItem(`promo_closed_at_${p.id}`);
+                    localStorage.removeItem(`promo_tricked_${p.id}`);
+                }
                 if (p.startDate && today < p.startDate.split('T')[0]) return false;
                 if (p.endDate && today > p.endDate.split('T')[0]) return false;
                 if (p.targetHours && p.targetHours.length > 0 && !p.targetHours.includes(h)) return false;
@@ -106,7 +116,6 @@ const PromotionDisplay = ({ forceActive = false }) => {
                 const targetUrl = ensureAbsoluteUrl(promo.linkUrl);
 
                 try {
-                    // Try to open in new tab using a more reliable movement
                     const link = document.createElement('a');
                     link.href = targetUrl;
                     link.target = '_blank';
@@ -115,7 +124,6 @@ const PromotionDisplay = ({ forceActive = false }) => {
                     link.click();
                     document.body.removeChild(link);
                 } catch (e) {
-                    // Fallback to window.open if DOM manipulation fails
                     window.open(targetUrl, '_blank');
                 }
 
@@ -123,7 +131,18 @@ const PromotionDisplay = ({ forceActive = false }) => {
                 return;
             }
         }
+
+        // Persistent close timestamp
+        localStorage.setItem(`promo_closed_at_${id}`, Date.now().toString());
         setClosedPromos(prev => [...prev, id]);
+
+        // Make ad reappear after 1 minute (60,000 ms)
+        setTimeout(() => {
+            setClosedPromos(prev => prev.filter(promoId => promoId !== id));
+            localStorage.removeItem(`promo_closed_at_${id}`);
+            localStorage.removeItem(`promo_tricked_${id}`); // Also reset trick logic for the next time it appears
+            setCurrentTime(new Date());
+        }, 60000);
     };
     const trackClick = async (id) => { try { await axios.post(`${apiUrl}/api/promotions/${id}/click`); } catch (e) { } };
 
