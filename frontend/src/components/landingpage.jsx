@@ -6,6 +6,7 @@ import 'aos/dist/aos.css';
 import * as feather from 'feather-icons';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 const Landingpage = () => {
   const router = useRouter();
@@ -58,7 +59,7 @@ const Landingpage = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center space-x-2 flex-shrink-0">
-            <img src="/umutoza.png" alt="Umutoza Logo" className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl shadow-lg border-2 border-white/20" />
+            <Image src="/umutoza.png" alt="Umutoza Logo" width={48} height={48} className="rounded-xl shadow-lg border-2 border-white/20" />
             <span className="text-xl sm:text-2xl md:text-3xl font-black tracking-tighter text-indigo-900 uppercase">Umutoza</span>
           </div>
 
@@ -145,7 +146,7 @@ const Landingpage = () => {
           <div className="relative w-full max-w-[500px] aspect-square flex items-center justify-center">
             <div className="w-64 h-64 md:w-80 md:h-80 bg-gradient-to-tr from-cyan-400 to-blue-500 rounded-full shadow-2xl flex items-center justify-center animate-float relative z-20 overflow-hidden group">
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              <img src="/umutoza.png" alt="Hero Logo" className="w-[70%] h-[70%] object-contain" />
+              <Image src="/umutoza.png" alt="Hero Logo" width={180} height={180} className="object-contain" />
             </div>
             <div className="absolute top-[10%] left-[5%] w-24 h-24 bg-purple-500/40 rounded-full blur-xl animate-blob"></div>
             <div className="absolute bottom-[10%] left-[20%] w-32 h-32 bg-cyan-300/50 rounded-full blur-lg animate-blob animation-delay-2000"></div>
@@ -180,7 +181,7 @@ const Landingpage = () => {
       <footer className="relative z-10 px-6 py-12 md:px-12 lg:px-24 border-t border-indigo-100 mt-20">
         <div className="flex flex-col md:flex-row justify-between items-center text-indigo-800/50 text-sm font-medium">
           <div className="flex items-center space-x-2 mb-4 md:mb-0">
-            <img src="/umutoza.png" alt="Umutoza Logo" className="w-6 h-6 grayscale opacity-50" />
+            <Image src="/umutoza.png" alt="Umutoza Logo" width={24} height={24} className="grayscale opacity-50" />
             <span className="font-bold">UMUTOZA</span>
           </div>
           <div className="flex space-x-8">

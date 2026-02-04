@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const QuestionDetailClient = ({ question, nextQuestionId }) => {
     const [showAnswer, setShowAnswer] = useState(false);
@@ -40,10 +41,12 @@ const QuestionDetailClient = ({ question, nextQuestionId }) => {
                                 {question.questionImage && (
                                     <div className="mb-8 md:mb-10 rounded-[24px] overflow-hidden bg-slate-50 border-2 border-slate-100/50 shadow-inner group">
                                         <div className="relative aspect-video flex items-center justify-center p-4">
-                                            <img
+                                            <Image
                                                 src={`${process.env.NEXT_PUBLIC_API_URL}${question.questionImage}`}
                                                 alt="Ibisobanuro mu mashusho"
-                                                className="max-w-full max-h-full object-contain transition-transform duration-700 group-hover:scale-[1.03]"
+                                                fill
+                                                className="object-contain transition-transform duration-700 group-hover:scale-[1.03]"
+                                                unoptimized
                                             />
                                         </div>
                                     </div>

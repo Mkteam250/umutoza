@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
+import Image from 'next/image';
 
 const CampaignManager = () => {
     const [campaigns, setCampaigns] = useState([]);
@@ -214,7 +215,13 @@ const CampaignManager = () => {
                                 {campaign.mediaType === 'video' ? (
                                     <video src={`${apiUrl}${campaign.mediaUrl}`} className="w-full h-full object-cover" />
                                 ) : (
-                                    <img src={`${apiUrl}${campaign.mediaUrl}`} alt={campaign.name} className="w-full h-full object-cover" />
+                                    <Image
+                                        src={`${apiUrl}${campaign.mediaUrl}`}
+                                        alt={campaign.name}
+                                        fill
+                                        className="object-cover"
+                                        unoptimized
+                                    />
                                 )}
                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
                                     <span className="bg-white/90 text-slate-900 px-3 py-1 rounded-full text-xs font-bold">Preview</span>
@@ -324,7 +331,7 @@ const CampaignManager = () => {
                                                     {formData.mediaType === 'video' || (mediaFile && mediaFile.type.startsWith('video')) ? (
                                                         <video src={mediaPreview} className="h-32 rounded-lg shadow-md" autoPlay muted loop />
                                                     ) : (
-                                                        <img src={mediaPreview} className="h-32 rounded-lg shadow-md" alt="Preview" />
+                                                        <Image src={mediaPreview} width={200} height={128} className="h-32 w-auto rounded-lg shadow-md object-contain" alt="Preview" unoptimized />
                                                     )}
                                                     <p className="text-xs text-indigo-600 font-bold mt-2">Click to replace</p>
                                                 </div>
@@ -531,7 +538,7 @@ const PreviewOverlay = ({ campaign, onClose, mediaPreview }) => {
                                 {campaign.mediaType === 'video' ? (
                                     <video src={mediaPreview} autoPlay loop muted className="w-full rounded-lg mb-2" />
                                 ) : (
-                                    <img src={mediaPreview} alt="Ad" className="w-full rounded-lg mb-2 object-cover" />
+                                    <Image src={mediaPreview} alt="Ad" width={400} height={400} className="w-full rounded-lg mb-2 object-cover" unoptimized />
                                 )}
                                 {campaign.showButton !== false && (
                                     <a href="#" className="block w-full bg-indigo-600 text-white text-center py-2 rounded-lg font-bold text-sm mt-2">{campaign.ctaText || 'Learn More'}</a>
@@ -547,7 +554,7 @@ const PreviewOverlay = ({ campaign, onClose, mediaPreview }) => {
                                             {campaign.mediaType === 'video' ? (
                                                 <video src={mediaPreview} autoPlay loop muted className="w-full h-full object-cover" />
                                             ) : (
-                                                <img src={mediaPreview} alt="Ad" className="w-full h-full object-cover" />
+                                                <Image src={mediaPreview} alt="Ad" fill className="object-cover" unoptimized />
                                             )}
                                             {/* Overlay to ensure close button is visible if enabled */}
                                             {campaign.canClose !== false && (
@@ -565,7 +572,7 @@ const PreviewOverlay = ({ campaign, onClose, mediaPreview }) => {
                                                     {campaign.mediaType === 'video' ? (
                                                         <video src={mediaPreview} autoPlay loop muted className="w-full h-full object-cover skew-x-12 scale-110" />
                                                     ) : (
-                                                        <img src={mediaPreview} alt="Ad" className="w-full h-full object-cover skew-x-12 scale-110" />
+                                                        <Image src={mediaPreview} alt="Ad" fill className="object-cover skew-x-12 scale-110" unoptimized />
                                                     )}
                                                 </div>
                                                 <div className="z-10">

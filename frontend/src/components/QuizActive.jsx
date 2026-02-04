@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 
 const QuizActive = ({
     questions,
@@ -47,8 +48,14 @@ const QuizActive = ({
                     <h2 className="text-2xl md:text-3xl font-extrabold text-indigo-900 mb-10 leading-tight">{currentQ.questionText}</h2>
 
                     {currentQ.questionImage && (
-                        <div className="mb-12 flex justify-center bg-white/50 p-6 rounded-[40px] border border-white/50 backdrop-blur-sm shadow-inner overflow-hidden">
-                            <img src={`${apiUrl}${currentQ.questionImage}`} alt="Quiz" className="max-w-full max-h-80 object-contain rounded-2xl transition-transform duration-500 hover:scale-105" />
+                        <div className="mb-12 flex justify-center bg-white/50 p-6 rounded-[40px] border border-white/50 backdrop-blur-sm shadow-inner overflow-hidden relative min-h-[200px]">
+                            <Image
+                                src={`${apiUrl}${currentQ.questionImage}`}
+                                alt="Quiz"
+                                fill
+                                className="object-contain rounded-2xl transition-transform duration-500 hover:scale-105"
+                                unoptimized
+                            />
                         </div>
                     )}
 

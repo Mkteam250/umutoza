@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import Image from 'next/image';
 import QuestionsManage from './QuestionsManage';
 import CampaignManager from './CampaignManager';
 import Messages from './Messages';
@@ -129,7 +130,7 @@ const Dashboard = () => {
             return;
         }
 
-        const init = async () => { 
+        const init = async () => {
             await performSync();
         };
         init();
@@ -206,10 +207,13 @@ const Dashboard = () => {
                             <span className="text-[10px] font-bold text-slate-400 uppercase">{time.toLocaleDateString()}</span>
                         </div>
                         <div className="h-10 w-10 bg-slate-100 rounded-full overflow-hidden border-2 border-white shadow-sm">
-                            <img
+                            <Image
                                 src={`https://ui-avatars.com/api/?name=Admin+User&background=4f46e5&color=fff`}
                                 alt="Admin"
+                                width={40}
+                                height={40}
                                 className="w-full h-full object-cover"
+                                unoptimized
                             />
                         </div>
                     </div>

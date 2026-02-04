@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 
 const QuizResult = ({
     questions,
@@ -60,7 +61,17 @@ const QuizResult = ({
                                         {isExpanded && (
                                             <div className="px-6 pb-6 pt-2 border-t border-indigo-50">
                                                 <p className="text-lg font-bold text-indigo-900 mb-6">{q.questionText}</p>
-                                                {q.questionImage && <img src={`${apiUrl}${q.questionImage}`} className="w-full max-h-64 object-contain rounded-2xl mb-6 shadow-sm bg-slate-50" alt="Q" />}
+                                                {q.questionImage && (
+                                                    <div className="relative w-full h-64 mb-6 shadow-sm bg-slate-50 rounded-2xl overflow-hidden">
+                                                        <Image
+                                                            src={`${apiUrl}${q.questionImage}`}
+                                                            fill
+                                                            className="object-contain"
+                                                            alt="Q"
+                                                            unoptimized
+                                                        />
+                                                    </div>
+                                                )}
                                                 <div className="space-y-3">
                                                     {q.options.map((opt, oIdx) => {
                                                         const isCorrect = oIdx === q.correctAnswerIndex;

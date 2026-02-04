@@ -23,7 +23,10 @@ const Messages = () => {
     }, [apiUrl, token]);
 
     useEffect(() => {
-        fetchMessages();
+        const init = async () => {
+            await fetchMessages();
+        };
+        init();
     }, [fetchMessages]);
 
     const handleMarkAsRead = async (id) => {

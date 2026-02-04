@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import Image from 'next/image';
 
 const QuestionsManage = ({ isEmbedded = false }) => {
     const [questions, setQuestions] = useState([]);
@@ -193,7 +194,7 @@ const QuestionsManage = ({ isEmbedded = false }) => {
                                     <div key={q.id} className="group bg-slate-50 rounded-3xl p-6 border border-slate-100 hover:bg-white hover:shadow-2xl transition-all duration-300 flex flex-col h-full">
                                         <div className="mb-4">
                                             <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${q.difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
-                                                    q.difficulty === 'Hard' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
+                                                q.difficulty === 'Hard' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
                                                 }`}>
                                                 {q.difficulty}
                                             </span>
@@ -204,8 +205,14 @@ const QuestionsManage = ({ isEmbedded = false }) => {
                                         </h3>
 
                                         {q.imageUrl && (
-                                            <div className="mb-6 rounded-2xl overflow-hidden aspect-video">
-                                                <img src={`${apiUrl}${q.imageUrl}`} alt="Question" className="w-full h-full object-cover" />
+                                            <div className="mb-6 rounded-2xl overflow-hidden aspect-video relative">
+                                                <Image
+                                                    src={`${apiUrl}${q.imageUrl}`}
+                                                    alt="Question"
+                                                    fill
+                                                    className="object-cover"
+                                                    unoptimized
+                                                />
                                             </div>
                                         )}
 
