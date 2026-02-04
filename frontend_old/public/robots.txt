@@ -1,6 +1,0 @@
-# public/robots.txt
-User-agent: *
-Allow: /
-Disallow: /admin/
-
-Sitemap: https://umutoza.pages.dev/sitemap.xml
