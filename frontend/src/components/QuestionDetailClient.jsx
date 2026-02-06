@@ -137,7 +137,7 @@ const QuestionDetailClient = ({ question, nextQuestionId }) => {
                         onClick={() => setShowAnswer(false)}
                         className="pointer-events-auto flex items-center gap-3 px-6 py-4 md:px-8 md:py-5 bg-slate-900 text-white rounded-full font-black shadow-2xl hover:bg-indigo-600 hover:scale-105 active:scale-95 transition-all group ring-4 ring-white shadow-indigo-500/20"
                     >
-                        <span className="text-sm md:text-lg uppercase tracking-wider">Ikikurikiyeho</span>
+                        <span className="text-sm md:text-lg uppercase tracking-wider">Igikurikiyeho</span>
                         <span className="text-xl md:text-3xl transition-transform group-hover:translate-x-1">→</span>
                     </Link>
                 </div>
